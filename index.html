@@ -18,14 +18,14 @@
     --shadow-off: 6px;
   }
   *{box-sizing:border-box;}
-  body{margin:0;}
-  html{-webkit-tap-highlight-color:transparent;}
+  html, body { height: 100%; margin: 0; }
+  body { -webkit-tap-highlight-color: transparent; }
 
   .pb-root{
     background:var(--paper);
     color:var(--ink);
     font-family:'Inter',sans-serif;
-    min-height:100%;
+    min-height:100vh;
     padding:28px 20px 60px;
     background-image:
       radial-gradient(var(--ink) 1px, transparent 1px);
