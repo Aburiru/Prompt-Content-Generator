@@ -24,12 +24,17 @@ export default async function handler(req, res) {
 
     const data = await resp.json();
 
+    // Debug: log actual Gemini response
+    console.log('Gemini API response:', JSON.stringify(data, null, 2));
+
     if (resp.status === 429 || (data.error && data.error.code === 429)) {
       return res.status(429).json({ error: 'rate_limited', message: 'Sistem sedang sibuk, coba lagi nanti ya.' });
     }
 
     if (!resp.ok) {
-      return res.status(500).json({ error: 'gemini_error', message: 'Gagal memproses prompt, coba lagi nanti.' });
+      const geminiError = data.error?.message || JSON.stringify(data);
+      console.error('Gemini API error:', geminiError);
+      return res.status(500).json({ error: 'gemini_error', message: `Gemini error: ${geminiError}` });
     }
 
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
