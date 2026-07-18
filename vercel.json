@@ -3,6 +3,7 @@
   "devCommand": "echo 'no dev'",
   "installCommand": "echo 'no install'",
   "framework": null,
+  "outputDirectory": ".",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
