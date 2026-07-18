@@ -1,15 +1,17 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Parse body if needed (Vercel may not auto-parse)
+  // Parse body robustly
   let body = req.body;
+  if (!body) body = {};
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
-  body = body || {};
+  if (!body || typeof body !== 'object') body = {};
 
   const { prompt } = body;
-  if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
+  console.log('Received prompt:', prompt);
+  if (!prompt) return res.status(400).json({ error: 'Missing prompt', received: body });
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Server misconfigured' });
