@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Builder — Buat Prompt AI Dalam Hitungan Detik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EE;
+    --ink:#16171B;
+    --yellow:#FFC93C;
+    --coral:#FF5A5F;
+    --blue:#3E7CFF;
+    --lime:#A8E10C;
+    --panel:#FFFFFF;
+    --shadow-off: 6px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html{-webkit-tap-highlight-color:transparent;}
+
+  .pb-root{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100%;
+    padding:28px 20px 60px;
+    background-image:
+      radial-gradient(var(--ink) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-position: -10px -10px;
+    background-color: var(--paper);
+  }
+  .pb-wrap{ max-width:1100px; margin:0 auto; }
+
+  /* ---------- Header ---------- */
+  .pb-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap; margin-bottom:26px;
+  }
+  .pb-brand{ display:flex; align-items:center; gap:12px; }
+  .pb-brand-mark{
+    width:46px; height:46px; background:var(--ink); border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--yellow); font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:22px;
+    transform:rotate(-4deg);
+  }
+  .pb-brand-text h1{
+    font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:22px; margin:0; letter-spacing:-0.02em;
+  }
+  .pb-brand-text p{ margin:2px 0 0; font-size:13px; font-weight:500; color:#4B4B52; }
+
+  .pb-tabs{
+    display:flex; gap:0; border:3px solid var(--ink); border-radius:12px; overflow:hidden;
+    background:var(--panel);
+  }
+  .pb-tab{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+    padding:12px 18px; cursor:pointer; border:none; background:transparent; color:var(--ink);
+    transition:background .12s ease;
+  }
+  .pb-tab + .pb-tab{ border-left:3px solid var(--ink); }
+  .pb-tab.is-active{ background:var(--yellow); }
+
+  /* ---------- Generic panel ---------- */
+  .pb-panel{
+    background:var(--panel);
+    border:3px solid var(--ink);
+    border-radius:16px;
+    box-shadow: var(--shadow-off) var(--shadow-off) 0 var(--ink);
+    padding:22px;
+  }
+  .pb-eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:13px;
+    letter-spacing:0.04em; margin-bottom:14px;
+  }
+  .pb-eyebrow .num{
+    background:var(--ink); color:var(--paper); width:24px; height:24px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+  }
+
+  /* ---------- Step 1: category chips ---------- */
+  .pb-cats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  }
+  @media (max-width:640px){ .pb-cats{ grid-template-columns:repeat(2,1fr); } }
+  .pb-cat{
+    border:3px solid var(--ink); border-radius:12px; background:var(--panel);
+    padding:14px 10px; cursor:pointer; text-align:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;
+    box-shadow:4px 4px 0 var(--ink);
+    transform:translate(0,0);
+    transition:transform .08s ease, box-shadow .08s ease, background .1s ease;
+    user-select:none;
+  }
+  .pb-cat .emoji{ display:block; font-size:24px; margin-bottom:6px; }
+  .pb-cat:active{ transform:translate(4px,4px); box-shadow:0 0 0 var(--ink); }
+  .pb-cat.is-selected{ background:var(--lime); transform:translate(2px,2px); box-shadow:2px 2px 0 var(--ink); }
+
+  /* ---------- Layout for step 2 / 3 ---------- */
+  .pb-grid{
+    display:grid; grid-template-columns:1.1fr 1fr; gap:20px; margin-top:20px; align-items:start;
+  }
+  @media (max-width:860px){ .pb-grid{ grid-template-columns:1fr; } }
+
+  .pb-field{ margin-bottom:14px; }
+  .pb-field label{
+    display:block; font-weight:700; font-size:13px; margin-bottom:6px; font-family:'Space Grotesk',sans-serif;
+  }
+  .pb-select, .pb-textarea{
+    width:100%; border:3px solid var(--ink); border-radius:10px; padding:11px 12px;
+    font-family:'Inter',sans-serif; font-size:14px; background:var(--panel); color:var(--ink);
+    appearance:none; -webkit-appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size:5px 5px, 5px 5px;
+    background-repeat:no-repeat;
+  }
+  .pb-textarea{ background-image:none; resize:vertical; min-height:70px; font-family:'Inter',sans-serif; }
+  .pb-select:focus, .pb-textarea:focus{ outline:3px solid var(--blue); outline-offset:1px; }
+
+  .pb-btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:15px;
+    border:3px solid var(--ink); border-radius:12px; padding:15px 20px; cursor:pointer;
+    box-shadow:5px 5px 0 var(--ink); background:var(--coral); color:var(--ink);
+    width:100%; transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .pb-btn:active{ transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); }
+  .pb-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .pb-btn.secondary{ background:var(--blue); color:#fff; }
+  .pb-btn.small{ padding:10px 16px; font-size:13px; width:auto; box-shadow:4px 4px 0 var(--ink); }
+
+  /* ---------- Output ---------- */
+  .pb-output{
+    border:3px solid var(--ink); border-radius:12px; padding:16px;
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; line-height:1.6;
+    background:#FFFDF6; min-height:180px; white-space:pre-wrap; word-break:break-word;
+  }
+  .pb-output.is-empty{ color:#8A8A92; font-family:'Inter',sans-serif; font-style:italic; }
+  .pb-copybar{ display:flex; gap:10px; margin-top:12px; }
+  .pb-badge{
+    display:inline-block; font-size:11px; font-weight:700; font-family:'Space Grotesk',sans-serif;
+    background:var(--yellow); border:2px solid var(--ink); border-radius:7px; padding:3px 8px; margin-left:8px;
+  }
+  .pb-toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); font-family:'Space Grotesk',sans-serif; font-weight:700;
+    padding:12px 20px; border-radius:10px; opacity:0; pointer-events:none; transition:all .2s ease;
+    box-shadow:4px 4px 0 var(--lime); font-size:13px; z-index:50;
+  }
+  .pb-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .pb-hint{ font-size:12.5px; color:#6b6b72; margin-top:10px; line-height:1.5; }
+  .pb-spinner{
+    display:inline-block; width:14px; height:14px; border:2px solid var(--ink);
+    border-top-color:transparent; border-radius:50%; animation:pbspin .7s linear infinite; margin-right:8px; vertical-align:-2px;
+  }
+  @keyframes pbspin{ to{ transform:rotate(360deg); } }
+
+  .pb-section-title{ font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:15px; margin:0 0 4px; }
+  .pb-empty-note{ font-size:13px; color:#6b6b72; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="pb-root">
+  <div class="pb-wrap">
+
+    <div class="pb-header">
+      <div class="pb-brand">
+        <div class="pb-brand-mark">P</div>
+        <div class="pb-brand-text">
+          <h1>Prompt Builder</h1>
+          <p>Buat prompt AI berkualitas tanpa perlu jadi ahli.</p>
+        </div>
+      </div>
+      <div class="pb-tabs">
+        <button class="pb-tab is-active" id="tabBuat">Buat Prompt</button>
+        <button class="pb-tab" id="tabPerbaiki">Perbaiki Prompt</button>
+      </div>
+    </div>
+
+    <!-- ================= MODE: BUAT PROMPT ================= -->
+    <div id="viewBuat">
+
+      <div class="pb-panel">
+        <div class="pb-eyebrow"><span class="num">1</span> PILIH KATEGORI</div>
+        <div class="pb-cats" id="catGrid"></div>
+      </div>
+
+      <div class="pb-grid" id="afterCatArea" style="display:none;">
+        <div class="pb-panel">
+          <div class="pb-eyebrow"><span class="num">2</span> ISI PILIHAN</div>
+
+          <div class="pb-field">
+            <label for="fStyle">Gaya</label>
+            <select class="pb-select" id="fStyle"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fColor">Warna</label>
+            <select class="pb-select" id="fColor"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fMood">Suasana</label>
+            <select class="pb-select" id="fMood"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fLight">Pencahayaan</label>
+            <select class="pb-select" id="fLight"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fAngle">Sudut Pengambilan Gambar</label>
+            <select class="pb-select" id="fAngle"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fSize">Ukuran / Tujuan</label>
+            <select class="pb-select" id="fSize"></select>
+          </div>
+          <div class="pb-field">
+            <label for="fDetail">Detail Tambahan <span style="font-weight:500;color:#8A8A92;">(opsional)</span></label>
+            <textarea class="pb-textarea" id="fDetail" placeholder="Contoh: ada tulisan 'Diskon 50%', logo kucing kecil di sudut kanan..."></textarea>
+          </div>
+
+          <button class="pb-btn" id="btnGenerate">Buat Prompt →</button>
+        </div>
+
+        <div class="pb-panel">
+          <div class="pb-eyebrow"><span class="num">3</span> HASIL PROMPT</div>
+          <div class="pb-output is-empty" id="outputBox">Isi pilihan di sebelah kiri, lalu tekan "Buat Prompt". Hasilnya akan muncul di sini.</div>
+          <div class="pb-copybar">
+            <button class="pb-btn small" id="btnCopy" disabled>📋 Salin Prompt</button>
+          </div>
+          <p class="pb-hint">Prompt dibuat dalam Bahasa Inggris agar hasil paling akurat saat dipakai di tools AI seperti Midjourney, DALL·E, atau Stable Diffusion.</p>
+        </div>
+      </div>
+
+      <p class="pb-empty-note" id="chooseCatNote">Pilih kategori dulu untuk lanjut mengisi pilihan.</p>
+    </div>
+
+    <!-- ================= MODE: PERBAIKI PROMPT ================= -->
+    <div id="viewPerbaiki" style="display:none;">
+      <div class="pb-grid">
+        <div class="pb-panel">
+          <div class="pb-eyebrow"><span class="num">✎</span> PROMPT KAMU SAAT INI</div>
+          <div class="pb-field">
+            <textarea class="pb-textarea" id="rawPrompt" style="min-height:220px;" placeholder="Tempel prompt yang sudah kamu punya di sini. Bisa berantakan, bisa singkat — biar sistem yang merapikan."></textarea>
+          </div>
+          <button class="pb-btn secondary" id="btnImprove">✨ Perbaiki Prompt</button>
+        </div>
+        <div class="pb-panel">
+          <div class="pb-eyebrow"><span class="num">✓</span> HASIL YANG DISEMPURNAKAN</div>
+          <div class="pb-output is-empty" id="improvedBox">Hasil prompt yang lebih jelas dan detail akan muncul di sini.</div>
+          <div class="pb-copybar">
+            <button class="pb-btn small" id="btnCopyImproved" disabled>📋 Salin Prompt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="pb-toast" id="toast">Tersalin ke clipboard!</div>
+
+<script>
+(function(){
+
+  // ---------------- Data ----------------
+  const categories = [
+    {id:'poster', label:'Poster', emoji:'🖼️', en:'promotional poster design'},
+    {id:'logo', label:'Logo', emoji:'🔺', en:'logo design'},
+    {id:'produk', label:'Produk', emoji:'📦', en:'product photography'},
+    {id:'anime', label:'Anime', emoji:'⚡', en:'anime-style illustration'},
+    {id:'ilustrasi', label:'Ilustrasi', emoji:'🎨', en:'digital illustration'},
+    {id:'foto', label:'Foto', emoji:'📷', en:'photograph'},
+    {id:'medsos', label:'Media Sosial', emoji:'📱', en:'social media graphic'},
+    {id:'website', label:'Website', emoji:'💻', en:'website visual asset'},
+  ];
+
+  const styles = [
+    ['realistis','Realistis','photorealistic'],
+    ['kartun','Kartun','cartoon style'],
+    ['minimalis','Minimalis','minimalist'],
+    ['vintage','Vintage','vintage retro'],
+    ['futuristik','Futuristik','futuristic sci-fi'],
+    ['watercolor','Cat Air (Watercolor)','watercolor painting'],
+    ['3d','3D Render','3D render'],
+    ['lineart','Line Art','line art'],
+    ['animeStyle','Gaya Anime','anime style'],
+    ['flat','Flat Design','flat design'],
+  ];
+
+  const colors = [
+    ['cerah','Cerah & Berani','bold vibrant colors'],
+    ['pastel','Pastel Lembut','soft pastel colors'],
+    ['mono','Monokrom','monochrome color scheme'],
+    ['earth','Earth Tone','earthy natural tones'],
+    ['neon','Neon','neon color palette'],
+    ['bw','Hitam Putih','black and white'],
+    ['natural','Warna Alami','natural true-to-life colors'],
+  ];
+
+  const moods = [
+    ['ceria','Ceria','cheerful and playful'],
+    ['elegan','Elegan','elegant and refined'],
+    ['dramatis','Dramatis','dramatic'],
+    ['tenang','Tenang','calm and serene'],
+    ['energik','Energik','energetic and dynamic'],
+    ['misterius','Misterius','mysterious'],
+    ['profesional','Profesional','professional and clean'],
+    ['playful','Playful','fun and playful'],
+  ];
+
+  const lights = [
+    ['alami','Cahaya Alami','natural daylight'],
+    ['golden','Golden Hour','golden hour lighting'],
+    ['studio','Studio','studio lighting'],
+    ['backlight','Backlight','backlight / rim light'],
+    ['neonglow','Neon Glow','neon glow lighting'],
+    ['kontras','Dramatis (High Contrast)','dramatic high-contrast lighting'],
+    ['soft','Soft Diffused','soft diffused lighting'],
+  ];
+
+  const angles = [
+    ['eye','Eye Level','eye-level shot'],
+    ['top','Sudut Atas (Top-Down)','top-down view'],
+    ['low','Sudut Rendah (Low Angle)','low angle shot'],
+    ['close','Close-Up','close-up shot'],
+    ['wide','Wide Shot','wide shot'],
+    ['iso','Isometric','isometric view'],
+  ];
+
+  const sizeGroups = [
+    ['Media Sosial', [
+      ['ig_post','Postingan Instagram','1:1'], ['ig_story','Cerita Instagram','9:16'],
+      ['ig_reels','Reels Instagram','9:16'], ['fp','Foto Profil','1:1'],
+      ['yt_thumb','Thumbnail YouTube','16:9'], ['yt_banner','Banner YouTube','16:9 (wide banner)'],
+      ['tiktok','Video TikTok','9:16'], ['fb_post','Postingan Facebook','1:1'],
+      ['fb_cover','Sampul Facebook','16:9 (wide)'], ['li_post','Postingan LinkedIn','1:1'],
+      ['li_banner','Banner LinkedIn','16:9 (wide)'], ['x_post','Postingan X (Twitter)','16:9'],
+      ['pin','Pin Pinterest','2:3'],
+    ]],
+    ['Desain Promosi', [
+      ['poster_sz','Poster','2:3'], ['flyer','Flyer','A5 portrait'],
+      ['brosur','Brosur','A4 tri-fold'], ['spanduk','Spanduk','wide banner'],
+      ['banner_sz','Banner','wide banner'], ['roll','Roll Banner','tall banner'],
+      ['baliho','Baliho','extra-large landscape'], ['xbanner','X-Banner','tall banner'],
+      ['standing','Standing Banner','tall banner'],
+    ]],
+    ['Bisnis', [
+      ['logo_sz','Logo','1:1'], ['kartu','Kartu Nama','3.5:2'],
+      ['kemasan','Kemasan Produk','custom packaging'], ['label','Label Produk','custom label'],
+      ['stiker','Stiker','1:1'], ['menu','Menu Kafe','A4 portrait'],
+      ['voucher','Voucher','3:1'], ['sertifikat','Sertifikat','A4 landscape'],
+    ]],
+    ['Website', [
+      ['banner_web','Banner Website','16:9 (wide)'], ['hero','Hero Website','16:9 (wide)'],
+      ['header_web','Header Website','16:9 (wide)'], ['landing','Landing Page','full-page vertical'],
+      ['icon_web','Ikon Website','1:1'],
+    ]],
+    ['Presentasi & Dokumen', [
+      ['cover_pres','Sampul Presentasi','16:9'], ['ilus_pres','Ilustrasi Presentasi','16:9'],
+      ['cover_doc','Sampul Dokumen','A4 portrait'], ['infografik','Infografik','tall vertical'],
+    ]],
+    ['Percetakan', [
+      ['a4','Kertas A4','A4 portrait'], ['a5','Kertas A5','A5 portrait'],
+      ['a3','Kertas A3','A3 portrait'], ['undangan','Undangan','5:7'],
+      ['kalender','Kalender','A4 portrait'], ['buku','Buku (Sampul)','2:3'],
+      ['majalah','Majalah (Sampul)','A4 portrait'],
+    ]],
+    ['Lainnya', [
+      ['persegi','Persegi','1:1'], ['lanskap','Lanskap','16:9'],
+      ['potret','Potret','9:16'], ['custom','Ukuran Khusus','custom aspect ratio'],
+    ]],
+  ];
+
+  // ---------------- Helpers ----------------
+  function fillSelect(el, list, withEmpty){
+    el.innerHTML = '';
+    if(withEmpty){
+      const o = document.createElement('option');
+      o.value=''; o.textContent = withEmpty;
+      el.appendChild(o);
+    }
+    list.forEach(item=>{
+      const o = document.createElement('option');
+      o.value = item[0]; o.textContent = item[1]; o.dataset.en = item[2];
+      el.appendChild(o);
+    });
+  }
+
+  function fillSizeSelect(el){
+    el.innerHTML = '';
+    const o0 = document.createElement('option');
+    o0.value=''; o0.textContent='Pilih ukuran / tujuan';
+    el.appendChild(o0);
+    sizeGroups.forEach(([groupLabel, items])=>{
+      const og = document.createElement('optgroup');
+      og.label = groupLabel;
+      items.forEach(item=>{
+        const o = document.createElement('option');
+        o.value = item[0]; o.textContent = item[1];
+        o.dataset.en = item[1]; o.dataset.ratio = item[2];
+        og.appendChild(o);
+      });
+      el.appendChild(og);
+    });
+  }
+
+  const catGrid = document.getElementById('catGrid');
+  categories.forEach(cat=>{
+    const div = document.createElement('div');
+    div.className = 'pb-cat';
+    div.dataset.id = cat.id;
+    div.innerHTML = `<span class="emoji">${cat.emoji}</span>${cat.label}`;
+    div.addEventListener('click', ()=> selectCategory(cat.id));
+    catGrid.appendChild(div);
+  });
+
+  let selectedCategory = null;
+
+  function selectCategory(id){
+    selectedCategory = id;
+    document.querySelectorAll('.pb-cat').forEach(el=>{
+      el.classList.toggle('is-selected', el.dataset.id === id);
+    });
+    document.getElementById('afterCatArea').style.display = 'grid';
+    document.getElementById('chooseCatNote').style.display = 'none';
+  }
+
+  fillSelect(document.getElementById('fStyle'), styles, 'Pilih gaya');
+  fillSelect(document.getElementById('fColor'), colors, 'Pilih warna');
+  fillSelect(document.getElementById('fMood'), moods, 'Pilih suasana');
+  fillSelect(document.getElementById('fLight'), lights, 'Pilih pencahayaan');
+  fillSelect(document.getElementById('fAngle'), angles, 'Pilih sudut pengambilan gambar');
+  fillSizeSelect(document.getElementById('fSize'));
+
+  function selVal(id){
+    const el = document.getElementById(id);
+    const opt = el.options[el.selectedIndex];
+    return opt && opt.dataset.en ? opt.dataset.en : null;
+  }
+
+  function buildPrompt(){
+    const cat = categories.find(c=>c.id===selectedCategory);
+    const parts = [];
+
+    const subject = cat ? cat.en : 'visual design';
+    parts.push(`A ${subject}`);
+
+    const style = selVal('fStyle');
+    if(style) parts.push(`in a ${style} style`);
+
+    const sizeEl = document.getElementById('fSize');
+    const sizeOpt = sizeEl.options[sizeEl.selectedIndex];
+    const sizeLabel = sizeOpt && sizeOpt.dataset.en ? sizeOpt.dataset.en : null;
+    const ratio = sizeOpt && sizeOpt.dataset.ratio ? sizeOpt.dataset.ratio : null;
+    if(sizeLabel) parts.push(`, designed for ${sizeLabel}`);
+
+    let mainSentence = parts.join(' ') + '.';
+
+    const details = [];
+    const color = selVal('fColor');
+    if(color) details.push(`Color palette: ${color}.`);
+    const mood = selVal('fMood');
+    if(mood) details.push(`Mood: ${mood}.`);
+    const light = selVal('fLight');
+    if(light) details.push(`Lighting: ${light}.`);
+    const angle = selVal('fAngle');
+    if(angle) details.push(`Camera angle: ${angle}.`);
+
+    const extra = document.getElementById('fDetail').value.trim();
+    if(extra) details.push(`Additional details: ${extra}.`);
+
+    details.push('High quality, professional composition, sharp focus, clean execution.');
+
+    if(ratio) details.push(`Aspect ratio: ${ratio}.`);
+
+    return mainSentence + ' ' + details.join(' ');
+  }
+
+  const outputBox = document.getElementById('outputBox');
+  const btnCopy = document.getElementById('btnCopy');
+
+  document.getElementById('btnGenerate').addEventListener('click', ()=>{
+    if(!selectedCategory) return;
+    const prompt = buildPrompt();
+    outputBox.textContent = prompt;
+    outputBox.classList.remove('is-empty');
+    btnCopy.disabled = false;
+  });
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=> showToast('Tersalin ke clipboard!'))
+        .catch(()=> fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text){
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); showToast('Tersalin ke clipboard!'); }catch(e){ showToast('Gagal menyalin, salin manual ya.'); }
+    document.body.removeChild(ta);
+  }
+
+  btnCopy.addEventListener('click', ()=>{
+    if(outputBox.classList.contains('is-empty')) return;
+    copyText(outputBox.textContent);
+  });
+
+  // ---------------- Tabs ----------------
+  const tabBuat = document.getElementById('tabBuat');
+  const tabPerbaiki = document.getElementById('tabPerbaiki');
+  const viewBuat = document.getElementById('viewBuat');
+  const viewPerbaiki = document.getElementById('viewPerbaiki');
+
+  tabBuat.addEventListener('click', ()=>{
+    tabBuat.classList.add('is-active'); tabPerbaiki.classList.remove('is-active');
+    viewBuat.style.display='block'; viewPerbaiki.style.display='none';
+  });
+  tabPerbaiki.addEventListener('click', ()=>{
+    tabPerbaiki.classList.add('is-active'); tabBuat.classList.remove('is-active');
+    viewPerbaiki.style.display='block'; viewBuat.style.display='none';
+  });
+
+  // ---------------- Perbaiki Prompt (AI) ----------------
+  const btnImprove = document.getElementById('btnImprove');
+  const improvedBox = document.getElementById('improvedBox');
+  const btnCopyImproved = document.getElementById('btnCopyImproved');
+
+  btnImprove.addEventListener('click', async ()=>{
+    const raw = document.getElementById('rawPrompt').value.trim();
+    if(!raw) return;
+    btnImprove.disabled = true;
+    improvedBox.classList.add('is-empty');
+    improvedBox.innerHTML = '<span class="pb-spinner"></span>Menyempurnakan prompt kamu...';
+
+    try{
+      const response = await fetch("/api/improve-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: raw })
+      });
+      const data = await response.json();
+
+      if (response.status === 429 || data.error === 'rate_limited') {
+        improvedBox.textContent = 'Sistem sedang sibuk, coba lagi nanti ya.';
+      } else if (data.improvedPrompt) {
+        improvedBox.textContent = data.improvedPrompt;
+        improvedBox.classList.remove('is-empty');
+        btnCopyImproved.disabled = false;
+      } else {
+        improvedBox.textContent = data.message || 'Gagal memproses prompt, coba lagi nanti.';
+      }
+    } catch(err){
+      improvedBox.textContent = 'Gagal terhubung ke sistem. Periksa koneksi kamu lalu coba lagi.';
+    } finally {
+      btnImprove.disabled = false;
+    }
+  });
+
+  btnCopyImproved.addEventListener('click', ()=>{
+    if(improvedBox.classList.contains('is-empty')) return;
+    copyText(improvedBox.textContent);
+  });
+
+})();
+</script>
+</body>
+</html>
